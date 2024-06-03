@@ -8,7 +8,6 @@ PUT /:airline/:flight_num
 DELETE /:airline/:flight_num """
 
 import json
-from typing import List
 from fastapi import FastAPI, HTTPException
 from models import Flights, Airline
 
@@ -21,21 +20,22 @@ airline_list = list(airline_data.keys())
 flight_list = {k: v for k, v in airline_data.items()}
 
 @app.get("/")
-async def get_airlines() -> List[str]:
+async def get_airlines() -> list[str]:
     return airline_list
 
 @app.get("/{airline_name}")
-async def get_flights(airline_name: Airline) -> List[str]:
+async def get_flights(airline_name: Airline) -> list[str]:
     if airline_name.value not in flight_list:
         raise HTTPException(status_code=404, detail="Airline not found")
-    return [flight['flight_num'] for flight in flight_list[airline_name.value]]
+    return [flight["flight_num"] for flight in flight_list[airline_name.value]]
 
 @app.get("/{airline_name}/{flight_num}")
 async def get_flight_info(airline_name: Airline, flight_num: str) -> Flights:
     if airline_name.value not in flight_list:
         raise HTTPException(status_code=404, detail="Airline not found")
     for flight in flight_list[airline_name.value]:
-        if flight['flight_num'] == flight_num:
+        if flight["flight_num"] == flight_num:
+            flight["airline_name"] = airline_name.value
             return Flights(**flight)
     raise HTTPException(status_code=404, detail="Flight not found")
 
@@ -75,7 +75,7 @@ async def delete_flight(airline_name: Airline, flight_num: str):
     if airline_name.value not in flight_list:
         raise HTTPException(status_code=404, detail="Airline not found")
     for idx, existing_flight in enumerate(flight_list[airline_name.value]):
-        if existing_flight['flight_num'] == flight_num:
+        if existing_flight["flight_num"] == flight_num:
             del flight_list[airline_name.value][idx]
             return {"message": "Flight deleted successfully"}
     raise HTTPException(status_code=404, detail="Flight not found")
